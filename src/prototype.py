@@ -10,8 +10,13 @@ def finite(a,ndim=None):
 def process(cube,endmembers):
  cube=finite(cube,3);endmembers=finite(endmembers,2)
  if cube.shape[-1]!=endmembers.shape[1] or len(endmembers)<2:raise ValueError('Endmember bands mismatch')
- flat=cube.reshape(-1,cube.shape[-1]);norm=np.linalg.norm(flat,axis=1);enorm=np.linalg.norm(endmembers,axis=1)
- if np.any(norm==0) or np.any(enorm==0):raise ValueError('Zero spectrum')
+ flat=cube.reshape(-1,cube.shape[-1])
+ scale=np.max(np.abs(flat),axis=1)
+ escale=np.max(np.abs(endmembers),axis=1)
+ if np.any(scale==0) or np.any(escale==0):raise ValueError('Zero spectrum')
+ flat=flat/scale[:,None]
+ endmembers=endmembers/escale[:,None]
+ norm=np.linalg.norm(flat,axis=1);enorm=np.linalg.norm(endmembers,axis=1)
  angles=np.arccos(np.clip((flat/norm[:,None])@(endmembers/enorm[:,None]).T,-1,1))
  return np.argmin(angles,axis=1).reshape(cube.shape[:2])
 
